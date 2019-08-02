@@ -180,6 +180,10 @@ impl BpfJit {
             self.cb.unwrap()(self.ctx, &mut bpf_args) != 0
         }
     }
+
+    pub fn get_bpf_raw(&self) -> bpf_insn_t {
+        self.bpf_program_t
+    }
 }
 
 impl Clone for BpfJit {
