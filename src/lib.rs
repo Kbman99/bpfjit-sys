@@ -10,7 +10,7 @@ use libc;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct bpf_insn_t {
+pub struct bpf_insn_t {
     pub code: libc::c_ushort,
     pub jt: libc::c_uchar,
     pub jf: libc::c_uchar,
@@ -19,14 +19,14 @@ struct bpf_insn_t {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct bpf_program_t {
+pub struct bpf_program_t {
     pub bf_len: libc::c_uint,
     pub bf_insns: *mut bpf_insn_t,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct bpf_args_t {
+pub struct bpf_args_t {
     pub pkt: *const libc::c_uchar,
     pub wirelen: libc::size_t,
     pub buflen: libc::size_t,
@@ -36,7 +36,7 @@ struct bpf_args_t {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct bpf_ctx_t {
+pub struct bpf_ctx_t {
     pub copfuncs: *const ffi::c_void,
     pub nfuncs: libc::size_t,
     pub extwords: libc::size_t,
@@ -84,9 +84,9 @@ lazy_static! {
 }
 
 pub struct BpfJit {
-    prog: bpf_program_t,
-    ctx: *const bpf_ctx_t,
-    cb: bpfjit_func_t,
+    pub prog: bpf_program_t,
+    pub ctx: *const bpf_ctx_t,
+    pub cb: bpfjit_func_t,
 }
 
 impl BpfJit {
@@ -181,8 +181,21 @@ impl BpfJit {
         }
     }
 
-    pub fn get_bpf_raw(&self) -> bpf_insn_t {
-        self.bpf_program_t
+    pub fn print_bpf(&self) {
+        unsafe {
+            let prog = self.prog;
+            let n = prog.bf_len as isize;
+
+            let insn = prog.bf_insns;
+
+            print!("{},", n);
+            for i in 0..n {
+                print!(
+                    "{} {} {} {},",
+                    (*insn.offset(i)).code, (*insn.offset(i)).jt, (*insn.offset(i)).jf, (*insn.offset(i)).k
+                );
+            }
+        }
     }
 }
 
@@ -220,3 +233,28 @@ impl Drop for BpfJit {
 unsafe impl Send for BpfJit {}
 
 unsafe impl Sync for BpfJit {}
+
+
+#[cfg(test)]
+mod tests {
+    use super::BpfJit;
+
+    #[test]
+    fn test_jit() {
+        let jit = BpfJit::new_ip("ip[4:2] == (-tcp[4:2]-1) & 0xffff and tcp[6:2] == 0xffff").unwrap();
+        //let prog = jit.get_bpf_raw();
+        //        unsafe {
+        //            println!("{:?}", jit.ctx);
+        //            println!("{:?}", (*prog.bf_insns).code);
+        //            println!("{:?}", (*prog.bf_insns).jt);
+        //            println!("{:?}", (*prog.bf_insns).jf);
+        //            println!("{:?}", (*prog.bf_insns).k);
+        //
+        //            let temp = jit.get_bpf().unwrap();
+        //            let bytes = &buf[temp];
+        //            println!("{:?}", bytes);
+        //        }
+        jit.print_bpf();
+        assert!(true);
+    }
+}
