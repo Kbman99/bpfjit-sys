@@ -188,6 +188,21 @@ impl BpfJit {
     pub fn get_bpf(&self) -> bpfjit_func_t {
         self.cb
     }
+
+    pub fn print_bpf(&self) {
+        unsafe {
+            let n = self.prog.bf_len;
+
+            let insn = self.prog.bf_insns;
+            for i in 0..n {
+                println!(
+                    "{ 0x{:x}, {}, {}, 0x{:} }, \n",
+                    insn.code, insn.jt, insn.jf, isns.k
+                );
+                insn += 1;
+            }
+        }
+    }
 }
 
 impl Clone for BpfJit {
