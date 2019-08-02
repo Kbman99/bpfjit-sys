@@ -10,7 +10,7 @@ use libc;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct bpf_insn_t {
+pub struct bpf_insn_t {
     pub code: libc::c_ushort,
     pub jt: libc::c_uchar,
     pub jf: libc::c_uchar,
@@ -19,7 +19,7 @@ struct bpf_insn_t {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-struct bpf_program_t {
+pub struct bpf_program_t {
     pub bf_len: libc::c_uint,
     pub bf_insns: *mut bpf_insn_t,
 }
@@ -84,9 +84,9 @@ lazy_static! {
 }
 
 pub struct BpfJit {
-    prog: bpf_program_t,
-    ctx: *const bpf_ctx_t,
-    cb: bpfjit_func_t,
+    pub prog: bpf_program_t,
+    pub ctx: *const bpf_ctx_t,
+    pub cb: bpfjit_func_t,
 }
 
 impl BpfJit {
@@ -181,8 +181,12 @@ impl BpfJit {
         }
     }
 
-    pub fn get_bpf_raw(&self) -> bpf_insn_t {
-        self.bpf_program_t
+    pub fn get_bpf_raw(&self) -> bpf_program_t {
+        self.prog
+    }
+
+    pub fn get_bpf(&self) -> bpfjit_func_t {
+        self.cb
     }
 }
 
